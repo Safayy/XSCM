@@ -6,13 +6,12 @@
 
 using namespace std;
 
-// Define a struct for storing the latitude and longitude of a location
 struct Location {
     double lat;
     double lon;
+    string name;
 };
 
-// Define a function for calculating the distance between two locations using the haversine formula
 double calcDistance(Location loc1, Location loc2) {
     const double earthRadius = 6371; // km
     double dLat = (loc2.lat - loc1.lat) * M_PI / 180;
@@ -23,113 +22,86 @@ double calcDistance(Location loc1, Location loc2) {
     return d;
 }
 
-// Define a function for finding the optimal route for visiting all retailers and the supplier
 vector<int> findOptimalRoute(vector<Location> retailers, Location supplier, double& totalDistance, vector<double>& retailerDistances) {
-    vector<int> route;
-    for (vector<Location>::size_type i = 0; i < retailers.size(); i++) {
-        route.push_back(i);
-    }
+    int numRetailers = retailers.size();
+    vector<bool> visited(numRetailers, false);
+    vector<int> optimalRoute(numRetailers+1);
+    optimalRoute[0] = 0;
+    visited[0] = true;
 
-    double minDistance = INFINITY;
-
-    do {
-        double distance = calcDistance(supplier, retailers[route[0]]);
-        for (vector<int>::size_type i = 0; i < route.size() - 1; i++) {
-            distance += calcDistance(retailers[route[i]], retailers[route[i+1]]);
-        }
-        distance += calcDistance(retailers[route[route.size()-1]], supplier);
-
-        if (distance < minDistance) {
-            minDistance = distance;
-            retailerDistances.clear();
-            for (vector<int>::size_type i = 0; i < route.size() - 1; i++) {
-                retailerDistances.push_back(calcDistance(retailers[route[i]], retailers[route[i+1]]));
+    for (int i = 1; i < numRetailers; i++) {
+        double minDistance = INFINITY;
+        int nearestNeighbor = -1;
+        for (int j = 0; j < numRetailers; j++) {
+            if (!visited[j]) {
+                double distance = calcDistance(retailers[optimalRoute[i-1]], retailers[j]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestNeighbor = j;
+                }
             }
-            totalDistance = distance;
         }
-    } while (next_permutation(route.begin(), route.end()));
-
-    return route;
-}
-
-// Define a function for finding the unoptimized route given the locations of retailers and supplier
-vector<int> findUnoptimizedRoute(vector<Location> retailers, Location supplier, double& totalDistance, vector<double>& retailerDistances) {
-    vector<int> route;
-    for (vector<Location>::size_type i = 0; i < retailers.size(); i++) {
-        route.push_back(i);
+        optimalRoute[i] = nearestNeighbor;
+        visited[nearestNeighbor] = true;
     }
+    optimalRoute[numRetailers] = 0;
 
-    double distance = calcDistance(supplier, retailers[route[0]]);
-    for (vector<int>::size_type i = 0; i < route.size() - 1; i++) {
-        distance += calcDistance(retailers[route[i]], retailers[route[i+1]]);
-    }
-    distance += calcDistance(retailers[route[route.size()-1]], supplier);
-
-    totalDistance = distance;
-
+    double distance = calcDistance(supplier, retailers[optimalRoute[0]]);
     retailerDistances.clear();
-    for (vector<int>::size_type i = 0; i < route.size() - 1; i++) {
-        retailerDistances.push_back(calcDistance(retailers[route[i]], retailers[route[i+1]]));
+    for (int i = 0; i < numRetailers-1; i++) {
+        distance += calcDistance(retailers[optimalRoute[i]], retailers[optimalRoute[i+1]]);
+        retailerDistances.push_back(calcDistance(retailers[optimalRoute[i]], retailers[optimalRoute[i+1]]));
     }
+    distance += calcDistance(retailers[optimalRoute[numRetailers-1]], supplier);
+totalDistance = distance;
+retailerDistances.push_back(calcDistance(retailers[optimalRoute[numRetailers-1]], supplier));
+return optimalRoute;
 
-    return route;
 }
 
-
-// Define a function for printing the optimal route
-// Define a function for printing the routes
-void printRoute(vector<Location> retailers, Location supplier, vector<int> unoptimizedRoute, vector<int> optimizedRoute) {
-    cout << "Unoptimized route: Supplier -> ";
-    for (vector<int>::size_type i = 0; i < unoptimizedRoute.size(); i++) {
-        cout << "(" << retailers[unoptimizedRoute[i]].lat << ", " << retailers[unoptimizedRoute[i]].lon << ") -> ";
-    }
-    cout << "Supplier" << endl;
-
-    cout << "Optimized route: Supplier -> ";
-    for (vector<int>::size_type i = 0; i < optimizedRoute.size(); i++) {
-        cout << "(" << retailers[optimizedRoute[i]].lat << ", " << retailers[optimizedRoute[i]].lon << ") -> ";
-    }
-    cout << "Supplier" << endl;
+void printRoute(vector<Location> locations, vector<int> route, double totalDistance, vector<double> retailerDistances) {
+cout << "Optimal route:" << endl;
+for (int i = 0; i < route.size(); i++) {
+cout << locations[route[i]].name << " ";
+}
+cout << endl;
+cout << "Total distance traveled: " << totalDistance << " km" << endl;
+cout << "Retailer distances:" << endl;
+for (int i = 0; i < retailerDistances.size(); i++) {
+cout << locations[route[i]].name << " to " << locations[route[i+1]].name << ": " << retailerDistances[i] << " km" << endl;
+}
 }
 
 int main() {
-    // Define the locations of the retailers and supplier
-    vector<Location> retailers = {{40.7282, -73.7949}, {40.7436, -73.9117}, {40.6859, -73.9742}, {40.7736, -73.9826}};
-    Location supplier = {40.6939, -73.9852};
+    Location supplier = {40.748817, -73.985428, "Supplier"};
+    vector<Location> retailers = {
+        {40.760399, -73.991247, "Retailer 1"},
+        {40.752726, -73.996611, "Retailer 2"},
+        {40.759901, -73.984474, "Retailer 3"},
+        {40.752086, -73.982792, "Retailer 4"},
+        {40.755647, -73.986791, "Retailer 5"}
+    };
 
-
-    // Find the unoptimized route
-    double unoptimizedDistance = 0;
-    vector<double> unoptimizedRetailerDistances;
-    vector<int> unoptimizedRoute = findUnoptimizedRoute(retailers, supplier, unoptimizedDistance, unoptimizedRetailerDistances);
-
-    // Print the unoptimized route
-    // printRoute(retailers, supplier, unoptimizedRoute, "Unoptimized");
-    // Print the routes
-   
-
-
-    // Find the optimized route
-    double optimizedDistance = 0;
-    vector<double> optimizedRetailerDistances;
-    vector<int> optimizedRoute = findOptimalRoute(retailers, supplier, optimizedDistance, optimizedRetailerDistances);
-
-    // Print the optimized route
-    // printRoute(retailers, supplier, optimizedRoute, "Optimized");
-
-    // Print the distance traveled for each route
-    cout << "Unoptimized distance: " << unoptimizedDistance << " km" << endl;
-    cout << "Optimized distance: " << optimizedDistance << " km" << endl;
-
-    // Print the distance traveled for each retailer in the optimized route
-    cout << "Retailer distances (in km): ";
-    for (double distance : optimizedRetailerDistances) {
-        cout << distance << " ";
+    cout << "Unoptimized Route:\t";
+    cout << supplier.name << " -> ";
+    for (int i = 0; i < retailers.size(); i++) {
+        cout << retailers[i].name << " -> ";
     }
-    cout << endl;
+    cout << supplier.name << endl;
 
-    //  cout << endl;
-    printRoute(retailers, supplier, unoptimizedRoute, optimizedRoute);
+    double totalDistance;
+    vector<double> retailerDistances;
+    vector<int> optimalRoute = findOptimalRoute(retailers, supplier, totalDistance, retailerDistances);
+
+    cout << endl;
+    cout << "Optimal Route:\t\t" ;
+    cout << supplier.name << " -> ";
+    for (int i = 0; i < optimalRoute.size()-1; i++) {
+        cout << retailers[optimalRoute[i]].name << " -> ";
+    }
+    cout << supplier.name << endl;
+
+    cout << endl;
 
     return 0;
 }
