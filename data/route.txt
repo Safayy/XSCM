@@ -1,0 +1,24 @@
+Optimal route:
+Supplier -> Retailer 1 -> Retailer 3 -> Retailer 4 -> Retailer 2 -> Supplier
+
+Unoptimized route:
+Supplier -> Retailer 1 -> Retailer 2 -> Retailer 3 -> Retailer 4 -> Retailer 5 -> Supplier
+
+Optimal route:
+Supplier -> Retailer 1 -> Retailer 3 -> Retailer 4 -> Retailer 2 -> Supplier
+
+Unoptimized route:
+Supplier -> Retailer 1 -> Retailer 2 -> Retailer 3 -> Retailer 4 -> Supplier
+
+Unoptimized route:
+Supplier -> Retailer 1 -> Retailer 2 -> Retailer 3 -> Retailer 4 -> Retailer 5 -> Supplier
+
+Optimal route:
+Supplier -> Retailer 1 -> Retailer 3 -> Retailer 4 -> Retailer 2 -> Supplier
+
+Unoptimized route:
+Supplier -> Retailer 1 -> Retailer 2 -> Retailer 3 -> Retailer 4 -> Supplier
+
+Optimal route:
+Supplier -> Retailer 1 -> Retailer 3 -> Retailer 4 -> Retailer 2 -> Supplier
+
